@@ -81,6 +81,14 @@ def verify_file(path, label, expect_strings=(), expect_pages_min=1, expect_table
     left = re.findall(r"\{\{[^}]+\}\}", body)
     check(f"[{label}] 미치환 토큰 0", len(left) == 0, left[:5])
 
+    # 2차 업데이트: 마스킹·HTML 잔재 정제 확인
+    check(f"[{label}] '**' 잔재 0", body.count("**") == 0, body.count("**"))
+    check(f"[{label}] '담OOO' 잔재 0", "담OOO" not in body)
+    check(f"[{label}] '<br>' 리터럴 0", "<br>" not in body and "&lt;br&gt;" not in body)
+    check(f"[{label}] 지적사항 머리말 '대상자'", "대상자" in body and "대상자(" not in body)
+    check(f"[{label}] 관련자 머리말 직급·직무", "직급" in body and "직무" in body)
+    check(f"[{label}] 붙임 라벨 표기", "붙임 1" in body or "붙임 2" in body)
+
     for s in expect_strings:
         check(f"[{label}] 값 반영: {s}", s in body)
 
@@ -132,10 +140,12 @@ def verify_file(path, label, expect_strings=(), expect_pages_min=1, expect_table
         try:
             import fitz
             doc = fitz.open(pdf)
-            for i in range(min(2, doc.page_count)):
+            # 본문서는 전 쪽을, 나머지는 1~2쪽만 그림으로 남긴다.
+            upto = doc.page_count if label == "본문서" else min(2, doc.page_count)
+            for i in range(upto):
                 pix = doc[i].get_pixmap(dpi=110)
                 pix.save(os.path.join(HERE, f"rendered-{label}-p{i + 1}.png"))
-            check(f"[{label}] PDF 1~2쪽 이미지", doc.page_count >= 1, f"{doc.page_count}쪽")
+            check(f"[{label}] PDF 쪽 이미지", doc.page_count >= 1, f"{doc.page_count}쪽 · {upto}쪽 저장")
         except Exception as e:
             check(f"[{label}] PDF 1~2쪽 이미지", False, str(e)[:120])
 

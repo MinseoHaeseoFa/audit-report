@@ -194,6 +194,23 @@
     ];
   }
 
+  function blockFilled(it) {
+    return it ? blockStatus(it).filter(function (b) { return b.ok; }).length : 0;
+  }
+
+  /* 5단 블록 카운터 — 지금 건(0/5)과 전체(합계/전체×5)를 한 곳에서 갱신한다.
+     입력할 때마다 불러야 2번 건 이후에도 즉시 맞는다. */
+  function updateCounters() {
+    var act = state.items[state.active];
+    var meta = $('blockMeta');
+    if (meta) meta.textContent = '5단 블록 ' + blockFilled(act) + '/5';
+    var hint = $('step2Hint');
+    if (hint) {
+      var total = state.items.reduce(function (a, it) { return a + blockFilled(it); }, 0);
+      hint.textContent = state.items.length + '건 · 5단 블록 ' + total + '/' + (state.items.length * 5);
+    }
+  }
+
   function citeLines(it) {
     return (it.picks || []).map(function (p) {
       if (p.type === 'case') return '○ 참고 사례 [' + p.id + '] ' + p.title + (p.statute ? ' — ' + p.statute : '');
@@ -261,6 +278,7 @@
     var max = total * 5;
     var st = statute();
 
+    updateCounters();
     var html = '';
     html += '<div class="prow"><span>처분요구 건</span><strong>' + agg.count + '건 / ' + total + '묶음</strong></div>';
     html += '<div class="prow"><span>5단 블록</span><strong>' + filled + ' / ' + max + '</strong></div>';
@@ -355,8 +373,7 @@
         '</div>';
     }).join('');
     $('itemTabs').innerHTML = tabs;
-    $('step2Hint').textContent = state.items.length + '건 · 5단 블록 ' +
-      state.items.reduce(function (a, it) { return a + blockStatus(it).filter(function (b) { return b.ok; }).length; }, 0) + '/' + (state.items.length * 5);
+    updateCounters();
   }
 
   function renderKinds() {
@@ -384,7 +401,7 @@
         '</tr>';
     }).join('');
     body.innerHTML = rows || '<tr><td colspan="6" class="hint">종류를 추가해 주세요.</td></tr>';
-    $('blockMeta').textContent = '5단 블록 ' + blockStatus(it).filter(function (b) { return b.ok; }).length + '/5';
+    updateCounters();
   }
 
   function renderSubjects() {
@@ -415,6 +432,79 @@
 
   /* ---------------- 근거 검색 ---------------- */
   var searchState = { src: 'cases', q: '', cat: '' };
+
+  /* 규정 검색용 동의어 — 정확한 부분문자열만으로는 「출장여비」·「여비」·「겸직」이 0건이 된다.
+     (1) 동의어 묶음: 검색어를 같은 뜻의 낱말로 넓힌다.
+     (2) 조문별 검색어: 조문 요지에 없는 실무 낱말을 조문에 붙여 둔다.
+     어느 쪽도 인용문으로 쓰이지 않는다(인용은 summary 원문만). */
+  var REG_SYNONYM_GROUPS = [
+    ['출장여비', '출장비', '여비', '출장', '복명서', '출장정산'],
+    ['겸직', '복무', '외부활동', '영리업무', '겸임', '이중취업'],
+    ['법인카드', '연구비카드', '업무추진비', '카드', '집행']
+  ];
+  var REG_KEYWORDS = {
+    '임직원 행동강령|제14조': '출장여비 출장비 여비 업무추진비 법인카드 연구비카드 집행 정산 목적외사용',
+    '임직원 행동강령|제18조': '겸직 영리업무 외부활동 겸임 이중취업 사적이익 이해충돌',
+    '임직원 행동강령|제19조': '겸직 외부활동 겸임 강의 자문 명칭사용',
+    '임직원 행동강령|제23조': '겸직 외부활동 사적노무',
+    '임직원 행동강령|제23조의2제2호': '겸직 외부활동 부당지시 부당요구',
+    '취업규칙|제41조제3항': '출장 출장여비 출장비 여비 목적지변경 사후승인',
+    '취업규칙|제41조제4항': '출장 출장여비 출장비 여비 복명서 복명 출장정산',
+    '취업규칙|제10조': '복무 조퇴 외출 근무시간',
+    '취업규칙|제4조제4호': '복무 재택근무 근무지',
+    '취업규칙|제48조': '복무 복무기간 파견교육훈련',
+    '취업규칙|제6조제1항': '복무 근무시간 실근무',
+    '취업규칙|제9조의2제1항': '복무 출근 근무장소',
+    '연구시설장비 관리 및 활용요령|제3조제1호': '연구비 연구장비 장비 취득 집행',
+    '연구시설장비 관리 및 활용요령|제5조제1항·제2항': '연구비 연구장비 장비 사용신청',
+    '물품반출요령|제3조제1항': '자산 물품 반출 무단반출 유형자산',
+    '물품반출요령|제8조제1항': '자산 물품 반납 재반입',
+    '차량관리규정|제8조제6호': '차량 관용차 출장',
+    '차량관리규정|제15조제3항': '차량 차고 관용차',
+    '차량관리규정|제17조제2항': '차량 사고 사적사용',
+    '공용시설물 운영규정|제9조제1호': '시설 공용시설 행사 사용신청'
+  };
+
+  function flat(s) { return String(s == null ? '' : s).toLowerCase().replace(/\s+/g, ''); }
+
+  function regHay(r) {
+    var extra = REG_KEYWORDS[r.reg + '|' + r.article] || '';
+    return flat(r.reg + ' ' + r.article + ' ' + r.summary + ' ' + extra);
+  }
+
+  function expandTerm(term) {
+    var t = flat(term);
+    var out = [t];
+    if (!t) return out;
+    REG_SYNONYM_GROUPS.forEach(function (g) {
+      var hit = g.some(function (x) { var lx = flat(x); return lx.indexOf(t) >= 0 || t.indexOf(lx) >= 0; });
+      if (!hit) return;
+      g.forEach(function (x) { var lx = flat(x); if (out.indexOf(lx) < 0) out.push(lx); });
+    });
+    return out;
+  }
+
+  /* 검색어 낱말마다 (동의어 포함) 하나 이상 맞으면 통과. 맞힌 동의어는 syn 에 쌓는다. */
+  function regMatch(r, q, syn) {
+    var terms = q.split(/\s+/).filter(function (x) { return x.length; });
+    if (!terms.length) return true;
+    var hay = regHay(r);
+    return terms.every(function (t) {
+      var variants = expandTerm(t);
+      for (var i = 0; i < variants.length; i++) {
+        if (hay.indexOf(variants[i]) >= 0) {
+          if (syn && variants[i] !== flat(t) && syn.indexOf(variants[i]) < 0) syn.push(variants[i]);
+          return true;
+        }
+      }
+      return false;
+    });
+  }
+
+  function regExact(r, q) {
+    var own = flat(r.reg + ' ' + r.article + ' ' + r.summary);
+    return q.split(/\s+/).filter(function (x) { return x.length; }).every(function (t) { return own.indexOf(flat(t)) >= 0; });
+  }
 
   function renderChips() {
     var cats = ['', '연구비', '복무', '인사', '계약', '자산·물품', '윤리', '정보보안'];
@@ -465,15 +555,28 @@
           '</article>';
       }).join('');
     } else {
-      var regs = (window.AUDIT_REGS || []).filter(function (r) {
-        if (!q) return true;
-        return (r.reg + ' ' + r.article + ' ' + r.summary).toLowerCase().indexOf(q.toLowerCase()) >= 0;
-      }).slice(0, 40);
+      var hits = [];
+      (window.AUDIT_REGS || []).forEach(function (r) {
+        var syn = [];
+        if (regMatch(r, q, syn)) hits.push({ r: r, exact: !q || regExact(r, q), syn: syn });
+      });
+      /* 원문에 그대로 있는 조문을 먼저, 동의어로 이어진 조문을 뒤에 */
+      hits.sort(function (a, b) { return (b.exact ? 1 : 0) - (a.exact ? 1 : 0); });
+      var regs = hits.slice(0, 40);
+      window.__regShown = regs.map(function (h) { return h.r; });
       if (!regs.length) {
         box.innerHTML = '<p class="empty">해당 조문이 없습니다. 다른 키워드로 찾아보세요.</p>';
         return;
       }
-      box.innerHTML = regs.map(function (r, i) {
+      var synAll = [];
+      hits.forEach(function (h) { h.syn.forEach(function (t) { if (synAll.indexOf(t) < 0) synAll.push(t); }); });
+      var head = '';
+      if (q) {
+        head = '<p class="res-hint">「' + esc(q) + '」 관련 조문 ' + regs.length + '개' +
+          (synAll.length ? ' <span>· 관련어 ' + esc(synAll.slice(0, 4).join('·')) + '도 함께 검색</span>' : '') + '</p>';
+      }
+      box.innerHTML = head + regs.map(function (h, i) {
+        var r = h.r;
         var picked = it.picks.some(function (p) { return p.type === 'reg' && p.reg === r.reg && p.article === r.article; });
         return '<article class="res">' +
           '<div class="res-top"><span class="res-id">규정</span><span class="res-title">' + esc(r.reg) + ' ' + esc(r.article) + '</span></div>' +
@@ -481,8 +584,6 @@
           '<div class="res-acts"><button class="btn sm" data-pick="reg" data-ri="' + i + '" type="button"' + (picked ? ' disabled' : '') + '>' + (picked ? '담김' : '근거 담기') + '</button></div>' +
           '</article>';
       }).join('');
-      $('regIndexCache') ; // no-op
-      window.__regShown = regs;
     }
   }
 
@@ -496,7 +597,7 @@
       return '<li><span class="p-kind">' + esc(label) + '</span><span class="p-txt">' + esc(text) + '</span>' +
         '<button class="row-del" data-unpick="' + i + '" type="button" aria-label="빼기">✕</button></li>';
     }).join('') : '<li class="hint" style="border:0;background:transparent">아직 담은 근거가 없습니다. 담지 않으면 문서에 조문이 생기지 않습니다.</li>';
-    $('blockMeta').textContent = '5단 블록 ' + blockStatus(it).filter(function (b) { return b.ok; }).length + '/5';
+    updateCounters();
   }
 
   /* ---------------- 3단계: 증빙 ---------------- */
@@ -524,8 +625,12 @@
         '<td class="act"><button class="row-del" data-delevid="' + i + '" type="button" aria-label="행 삭제">✕</button></td>' +
         '</tr>';
     }).join('') : '<tr><td colspan="7" class="hint">행이 없습니다. 비워 두면 문서에 증빙표가 나가지 않습니다.</td></tr>');
-    $('evidMeta').textContent = it.evidences.length + '행 · ' + (it.title || '건 ' + (state.evidIdx + 1));
-    $('step3Hint').textContent = it.evidences.length ? it.evidences.length + '행이 [표] 세부 증빙 내역으로 들어갑니다.' : '증빙표를 비우면 표 없이 나갑니다.';
+    var filled = evidRows(it).length;
+    var blank = it.evidences.length - filled;
+    $('evidMeta').textContent = it.evidences.length + '행' + (blank ? ' · 입력 ' + filled + '행' : '') + ' · ' + (it.title || '건 ' + (state.evidIdx + 1));
+    $('step3Hint').textContent = filled
+      ? filled + '행이 [표] 세부 증빙 내역으로 들어갑니다.' + (blank ? ' 빈 행 ' + blank + '개는 문서에서 빠집니다.' : '')
+      : '증빙표를 비우면 표 없이 나갑니다.';
   }
 
   /* ---------------- 4단계: 요약/미리보기 ---------------- */
@@ -577,7 +682,7 @@
     p.push('</tbody></table></div>');
 
     p.push('<h4 class="sec">3. 지적사항 요약</h4>');
-    p.push('<div class="table-scroll"><table><thead><tr><th style="width:18%">소속</th><th style="width:20%">대상자(**)</th><th>주요 지적사항</th></tr></thead><tbody>');
+    p.push('<div class="table-scroll"><table><thead><tr><th style="width:18%">소속</th><th style="width:20%">대상자</th><th>주요 지적사항</th></tr></thead><tbody>');
     subjectRows().forEach(function (r) {
       p.push('<tr><td>' + nl2br(r.ORG) + '</td><td>' + nl2br(r.PERSON) + '</td><td class="l">' + nl2br(r.POINTS) + '</td></tr>');
     });
@@ -592,7 +697,7 @@
     state.items.forEach(function (it, i) {
       var label = state.items.length > 1 ? ('붙임 1-' + (i + 1)) : '붙임 1';
       p.push('<div class="doc-page">');
-      p.push('<div class="annex-head"><div class="annex-label">' + esc(label.replace('붙임 ', '붙임<br>')) + '</div><div class="annex-title">감사결과 처분요구 (' + esc(it.title || m.docTitle || '') + ')</div></div>');
+      p.push('<div class="annex-head"><div class="annex-label">붙임<br>' + esc(label.replace('붙임 ', '')) + '</div><div class="annex-title">감사결과 처분요구 (' + esc(it.title || m.docTitle || '') + ')</div></div>');
       p.push('<p class="center doc-h">' + esc(reqHeading(it)) + '</p>');
       p.push('<div class="kv"><div class="k">제 목</div><div class="v">' + esc(it.b1 || it.title || '') + '</div></div>');
       p.push('<div class="kv"><div class="k">내 용</div><div class="v"></div></div>');
@@ -1123,8 +1228,11 @@
     });
     $('addEvidRow').addEventListener('click', function () {
       var it = curEvidItem();
+      /* 빈 행만 추가한다 — 예시값은 1단계 「가상 테스트 데이터 채우기」에서만 들어간다. */
       it.evidences.push({ date: '', title: '', body: '', amount: '', note: '' });
       renderEvidTable(); save();
+      var first = document.querySelector('#evidBody tr:last-child input[data-ek="date"]');
+      if (first) first.focus();
     });
     $('evidBody').addEventListener('input', function (e) {
       var t = e.target;

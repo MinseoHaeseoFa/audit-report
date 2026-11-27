@@ -8,6 +8,7 @@
 - 표의 반복 행은 토큰이 든 한 행만 남기고, 나머지 행은 지운다(브라우저에서 복제).
 - Preview/PrvText.txt 도 원문을 지우고 안내문으로 교체한다.
 """
+import base64
 import copy
 import os
 import re
@@ -200,6 +201,11 @@ def main():
     if sz is not None:
         sz.set("height", "2814")
     fix_table(tbl3, 2)
+    # 머리행이 '대상자 / (**)' 두 문단이다 — 개인정보 표시 잔재 '(**)' 문단을 지워 '대상자' 만 남긴다.
+    hdr_cell = cell_grid(rows(tbl3)[0])[1]
+    hdr_sl = hdr_cell.find(SUBLIST)
+    for extra in cell_paras(hdr_cell)[1:]:
+        hdr_sl.remove(extra)
     for tc, tok in zip(cell_grid(rows(tbl3)[1]),
                        ["{{R:SUBJ.ORG}}", "{{R:SUBJ.PERSON}}", "{{R:SUBJ.POINTS}}"]):
         set_cell(tc, [tok])
@@ -257,8 +263,11 @@ def main():
     set_para(tp[71], ["조치할 사항    "])
     set_para(tp[72], ["{{R:B5.LINE}}"])
 
-    # 관련자 명단
+    # 관련자 명단 머리행 — 원본이 마스킹으로 '**', '담OOO' 가 된 자리다. 앱이 채우는 열(직급·직무)로 바로잡는다.
     tbl10 = find_tbl(tp[80])
+    hdr10 = cell_grid(rows(tbl10)[0])
+    set_cell(hdr10[1], ["직급"])
+    set_cell(hdr10[3], ["직무"])
     for tc, tok in zip(cell_grid(rows(tbl10)[1]),
                        ["{{R:REL.ORG}}", "{{R:REL.RANK}}", "{{R:REL.NAME}}",
                         "{{R:REL.DUTY}}", "{{R:REL.PERIOD}}", "{{R:REL.REQ}}"]):
@@ -314,7 +323,8 @@ def main():
     os.makedirs(os.path.dirname(dbg), exist_ok=True)
     with open(dbg, "wb") as f:
         f.write(body)
-    for bad in ["김OO", "조OO", "박OO", "함OO", "출장여비", "허위출장", "목포", "춘천", "송파구"]:
+    for bad in ["김OO", "조OO", "박OO", "함OO", "출장여비", "허위출장", "목포", "춘천", "송파구",
+                "**", "담OOO", "OOO"]:
         assert bad not in body_txt, f"원문 잔존: {bad}"
 
     entries["Contents/section0.xml"] = body
@@ -339,6 +349,15 @@ def main():
     shutil.move(tmp, OUT)
     print("wrote", OUT, os.path.getsize(OUT), "bytes")
     print("paragraphs:", len(top_paras(root)))
+
+    # 오프라인 로딩용 base64 — 웹앱이 쓰는 사본도 같은 빌드에서 같이 만든다.
+    with open(OUT, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode("ascii")
+    b64_path = os.path.join(OUT_DIR, "master-b64.js")
+    with open(b64_path, "w", encoding="utf-8") as f:
+        f.write("/* 클린 마스터 템플릿 base64 — 원본 .hwpx 그대로(오프라인 실행용) */\n")
+        f.write('window.MASTER_HWPX_B64 = "%s";\n' % b64)
+    print("wrote", b64_path, os.path.getsize(b64_path), "bytes")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>감사처분심의위원회 결과보고서 자동화 · 1차 파일럿</title>
+<title>감사 보고서 자동화 시스템</title>
 <meta name="description" content="감사 팩트를 입력하면 감사처분심의위원회 결과보고서 서식(.hwpx)을 그대로 채워 내보내는 오프라인 웹앱입니다.">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -13,8 +13,8 @@
   <div class="brand">
     <span class="logo" aria-hidden="true">🏛️</span>
     <div class="brand-txt">
-      <strong>감사처분심의위원회 결과보고서 자동화</strong>
-      <span>1차 파일럿 · 파일1 서식 기반 · 100% 브라우저 실행</span>
+      <strong>감사 보고서 자동화 시스템</strong>
+      <span>감사처분심의위원회 결과보고서 · 파일1 서식 기반 · 100% 브라우저 실행</span>
     </div>
   </div>
   <div class="top-actions">
@@ -22,6 +22,19 @@
     <button class="btn ghost sm" id="resetBtn" type="button">처음부터</button>
   </div>
 </header>
+
+<nav class="doctabs" aria-label="보고서 종류">
+  <button class="doctab is-active" type="button" aria-current="true" title="현재 작성 중인 보고서입니다">
+    <span class="no">①</span>
+    <span class="nm">감사처분심의위원회 결과보고서</span>
+    <span class="tag-now">작성 중</span>
+  </button>
+  <button class="doctab" type="button" disabled aria-disabled="true" title="2차 확장에서 서식과 단계를 갖춰 열 예정입니다">
+    <span class="no">②</span>
+    <span class="nm">복무감사 결과보고서</span>
+    <span class="tag-soon">준비중</span>
+  </button>
+</nav>
 
 <nav class="stepper" id="stepper" aria-label="작성 단계">
   <button class="step is-active" data-step="1" type="button">
@@ -321,13 +334,14 @@
     </header>
     <div class="modal-body">
       <h3>무엇을 하는 앱인가요</h3>
+      <p><strong>감사 보고서 자동화 시스템</strong>입니다. 지금은 ① 감사처분심의위원회 결과보고서(파일1)를 쓰고, ② 복무감사 결과보고서는 2차 확장에서 열 예정입니다.</p>
       <p>감사처분심의위원회에 올릴 <strong>결과보고서(파일1)</strong>를, 실제 서식 그대로 채워 내보냅니다. 표지 → 1. 총괄 → 2. 일람표 → 3. 지적사항 요약 → 4. 의결사항 → 5. 처분요구(안) 붙임1 → 붙임2 관련근거 순서입니다.</p>
 
       <h3>4단계로 쓰면 됩니다</h3>
       <ol>
         <li><strong>문서·감사 기본정보</strong> — 회차·보고일·제목·감사명, 행위 발생일과 인지일을 넣으면 징계시효(3년/5년)를 계산해 배지로 보여 줍니다.</li>
         <li><strong>건별 처분요구·근거</strong> — 처분요구 1건마다 카드를 씁니다. 종류·금액·인원은 총괄표에 자동 합산되고, 5단 블록(제목·경위·사실관계·판단/법령·처분요구)을 적습니다. 사례 DB·규정에서 <em>근거 담기</em>를 누른 것만 인용됩니다.</li>
-        <li><strong>세부 증빙표</strong> — 필요한 건에만 표를 채웁니다. 비우면 표 없이 나갑니다.</li>
+        <li><strong>세부 증빙표</strong> — 필요한 건에만 표를 채웁니다. <em>+ 행 추가</em> 는 빈 행을 만들고, 비어 있는 행은 문서에서 빠집니다(예시값은 1단계 「가상 테스트 데이터 채우기」에서만).</li>
         <li><strong>미리보기·HWPX</strong> — 웹 미리보기로 확인하고 <code>.hwpx</code>를 내려받습니다.</li>
       </ol>
 
@@ -342,6 +356,7 @@
       <h3>자주 묻는 것</h3>
       <p><strong>한글에서 열면 서식이 그대로인가요?</strong> 네, 원본 파일1의 표·문단 서식 개체를 그대로 두고 텍스트만 치환합니다. 다만 PC 한컴오피스에서 글꼴·표 폭을 한 번 확인하시길 권합니다.</p>
       <p><strong>건을 여러 개 쓰면?</strong> 붙임1이 <em>붙임 1-1, 1-2</em>로 나뉘고 일람표·총괄표·지적사항 요약이 자동 합산됩니다.</p>
+      <p><strong>규정 검색이 안 되는 낱말이 있나요?</strong> 동의어로 넓혀 찾습니다(예: 출장여비 ↔ 출장비·여비, 겸직 ↔ 복무·외부활동, 법인카드 ↔ 업무추진비·집행). 결과 위에 어떤 관련어로 찾았는지 표시됩니다. 인용은 조문 요지 원문만 들어갑니다.</p>
     </div>
   </div>
 </div>
