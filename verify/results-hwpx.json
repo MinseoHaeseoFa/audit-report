@@ -1,0 +1,338 @@
+{
+  "checks": [
+    {
+      "name": "[본문서] 파일 크기",
+      "ok": true,
+      "detail": "21,472 bytes"
+    },
+    {
+      "name": "[본문서] mimetype 첫 엔트리",
+      "ok": true,
+      "detail": "mimetype"
+    },
+    {
+      "name": "[본문서] mimetype 무압축(STORE)",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "[본문서] mimetype 값",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 파일 엔트리 11개",
+      "ok": true,
+      "detail": "11 · dirs 3"
+    },
+    {
+      "name": "[본문서] section0.xml 파싱",
+      "ok": true,
+      "detail": "문단 175 · 표 8 · 행 19"
+    },
+    {
+      "name": "[본문서] 미치환 토큰 0",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[본문서] 값 반영: 제12회 감사처분심의위원회 결과보고",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: 테스트 출장비 정산 부적정 건",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: 한국생산기술연구원",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: 2026. 11. 27.",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: 홍길동",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: 성춘향",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: 3,150,000",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: 3,150,000",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: 취업규칙",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: RND-22",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: 세부 증빙 내역",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] 값 반영: 원안 의결",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[본문서] charPr 참조 유효",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[본문서] paraPr 참조 유효",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[본문서] 원본 개인정보 누출 0",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[본문서] rhwp 열기",
+      "ok": true,
+      "detail": "6쪽"
+    },
+    {
+      "name": "[본문서] rhwp verify(쪽·표·문구)",
+      "ok": true,
+      "detail": "판정: pass (5 통과 / 0 불일치)"
+    },
+    {
+      "name": "[본문서] 레이아웃 이상 0",
+      "ok": true,
+      "detail": "overflow 0 · overlap 0 · empty 0"
+    },
+    {
+      "name": "[본문서] PDF 렌더",
+      "ok": true,
+      "detail": "rendered-본문서.pdf"
+    },
+    {
+      "name": "[본문서] PDF 1~2쪽 이미지",
+      "ok": true,
+      "detail": "6쪽"
+    },
+    {
+      "name": "[본문서] HWPX 왕복(원본 기준선 diff≤1)",
+      "ok": true,
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     50ms  생성본.hwpx · 원본 파일1도 diff=1"
+    },
+    {
+      "name": "[증빙없음] 파일 크기",
+      "ok": true,
+      "detail": "19,810 bytes"
+    },
+    {
+      "name": "[증빙없음] mimetype 첫 엔트리",
+      "ok": true,
+      "detail": "mimetype"
+    },
+    {
+      "name": "[증빙없음] mimetype 무압축(STORE)",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "[증빙없음] mimetype 값",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[증빙없음] 파일 엔트리 11개",
+      "ok": true,
+      "detail": "11 · dirs 3"
+    },
+    {
+      "name": "[증빙없음] section0.xml 파싱",
+      "ok": true,
+      "detail": "문단 143 · 표 7 · 행 14"
+    },
+    {
+      "name": "[증빙없음] 미치환 토큰 0",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[증빙없음] 값 반영: 테스트 출장비 정산 부적정 건",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[증빙없음] 값 반영: 홍길동",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[증빙없음] charPr 참조 유효",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[증빙없음] paraPr 참조 유효",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[증빙없음] 원본 개인정보 누출 0",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[증빙없음] rhwp 열기",
+      "ok": true,
+      "detail": "6쪽"
+    },
+    {
+      "name": "[증빙없음] rhwp verify(쪽·표·문구)",
+      "ok": true,
+      "detail": "판정: pass (4 통과 / 0 불일치)"
+    },
+    {
+      "name": "[증빙없음] 레이아웃 이상 0",
+      "ok": true,
+      "detail": "overflow 0 · overlap 0 · empty 0"
+    },
+    {
+      "name": "[증빙없음] PDF 렌더",
+      "ok": true,
+      "detail": "rendered-증빙없음.pdf"
+    },
+    {
+      "name": "[증빙없음] PDF 1~2쪽 이미지",
+      "ok": true,
+      "detail": "6쪽"
+    },
+    {
+      "name": "[증빙없음] HWPX 왕복(원본 기준선 diff≤1)",
+      "ok": true,
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     42ms  생성본_증빙없음.hwpx · 원본 파일1도 diff=1"
+    },
+    {
+      "name": "[증빙없음] 증빙표 미생성",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[2건] 파일 크기",
+      "ok": true,
+      "detail": "20,181 bytes"
+    },
+    {
+      "name": "[2건] mimetype 첫 엔트리",
+      "ok": true,
+      "detail": "mimetype"
+    },
+    {
+      "name": "[2건] mimetype 무압축(STORE)",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "[2건] mimetype 값",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[2건] 파일 엔트리 11개",
+      "ok": true,
+      "detail": "11 · dirs 3"
+    },
+    {
+      "name": "[2건] section0.xml 파싱",
+      "ok": true,
+      "detail": "문단 167 · 표 8 · 행 17"
+    },
+    {
+      "name": "[2건] 미치환 토큰 0",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[2건] 값 반영: 테스트 출장비 정산 부적정 건",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[2건] 값 반영: 테스트 연구장비 무단 반출",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[2건] 값 반영: 붙임 1-2",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[2건] charPr 참조 유효",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[2건] paraPr 참조 유효",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[2건] 원본 개인정보 누출 0",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[2건] rhwp 열기",
+      "ok": true,
+      "detail": "8쪽"
+    },
+    {
+      "name": "[2건] rhwp verify(쪽·표·문구)",
+      "ok": true,
+      "detail": "판정: pass (5 통과 / 0 불일치)"
+    },
+    {
+      "name": "[2건] 레이아웃 이상 0",
+      "ok": true,
+      "detail": "overflow 0 · overlap 0 · empty 0"
+    },
+    {
+      "name": "[2건] PDF 렌더",
+      "ok": true,
+      "detail": "rendered-2건.pdf"
+    },
+    {
+      "name": "[2건] PDF 1~2쪽 이미지",
+      "ok": true,
+      "detail": "8쪽"
+    },
+    {
+      "name": "[2건] HWPX 왕복(원본 기준선 diff≤1)",
+      "ok": true,
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     45ms  생성본_2건.hwpx · 원본 파일1도 diff=1"
+    }
+  ],
+  "summary": {
+    "total": 66,
+    "passed": 66
+  }
+}

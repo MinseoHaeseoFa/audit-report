@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>감사처분심의위원회 결과보고서 자동화 · 1차 파일럿</title>
+<meta name="description" content="감사 팩트를 입력하면 감사처분심의위원회 결과보고서 서식(.hwpx)을 그대로 채워 내보내는 오프라인 웹앱입니다.">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">🏛️</span>
+    <div class="brand-txt">
+      <strong>감사처분심의위원회 결과보고서 자동화</strong>
+      <span>1차 파일럿 · 파일1 서식 기반 · 100% 브라우저 실행</span>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button class="btn ghost sm" id="helpBtn" type="button">📖 사용설명서</button>
+    <button class="btn ghost sm" id="resetBtn" type="button">처음부터</button>
+  </div>
+</header>
+
+<nav class="stepper" id="stepper" aria-label="작성 단계">
+  <button class="step is-active" data-step="1" type="button">
+    <span class="num">1</span>
+    <span class="t"><i class="full">문서·감사 기본정보</i><i class="short">기본정보</i></span>
+  </button>
+  <button class="step" data-step="2" type="button">
+    <span class="num">2</span>
+    <span class="t"><i class="full">건별 처분요구·근거</i><i class="short">처분·근거</i></span>
+  </button>
+  <button class="step" data-step="3" type="button">
+    <span class="num">3</span>
+    <span class="t"><i class="full">세부 증빙표 <em>선택</em></i><i class="short">증빙표</i></span>
+  </button>
+  <button class="step" data-step="4" type="button">
+    <span class="num">4</span>
+    <span class="t"><i class="full">미리보기·HWPX</i><i class="short">미리보기</i></span>
+  </button>
+</nav>
+
+<main class="layout">
+  <aside class="side">
+    <section class="card">
+      <h2 class="card-h">작성 현황</h2>
+      <div id="progressBox" class="progress-box"></div>
+      <ul class="checklist" id="blockChecklist"></ul>
+    </section>
+    <section class="card">
+      <h2 class="card-h">징계·문책 시효</h2>
+      <div id="statuteBox" class="statute-box"></div>
+    </section>
+    <section class="card principle">
+      <h2 class="card-h">이 화면이 지키는 선</h2>
+      <ul>
+        <li>인용은 <strong>담은 근거의 원문 문자열만</strong>. 없는 조문·사건번호를 만들지 않습니다.</li>
+        <li>양정(징계 종류·정도)은 <strong>앱이 정하지 않습니다</strong>. 감사인 판단 몫으로 비워 둡니다.</li>
+        <li>입력값과 파일은 <strong>이 브라우저 밖으로 나가지 않습니다</strong>(외부 요청 0건).</li>
+      </ul>
+    </section>
+  </aside>
+
+  <div class="content">
+
+    <!-- ================= 1단계 ================= -->
+    <section class="panel" id="step1" aria-labelledby="step1-h">
+      <div class="panel-head">
+        <h2 id="step1-h">1단계 · 문서·감사 기본정보</h2>
+        <div class="head-actions">
+          <button class="btn ghost sm" id="loadSample" type="button">가상 테스트 데이터 채우기</button>
+        </div>
+      </div>
+      <p class="lead">표지와 총괄·일람표의 기준값입니다. 심의위원회 회차와 보고일, 감사명, 행위 발생일·인지일을 넣으면 징계시효(3년/5년)를 자동 계산합니다.</p>
+
+      <div class="grid2">
+        <label class="field">
+          <span>심의위원회 회차</span>
+          <input id="f-round" type="text" placeholder="예: 제12회" autocomplete="off">
+        </label>
+        <label class="field">
+          <span>보고일</span>
+          <input id="f-reportDate" type="date">
+        </label>
+      </div>
+
+      <label class="field">
+        <span>보고서 제목 <small>표지·붙임1 제목에 그대로 쓰입니다</small></span>
+        <input id="f-docTitle" type="text" placeholder="예: 테스트 출장여비 부당 정산 등" autocomplete="off">
+      </label>
+
+      <div class="grid2">
+        <label class="field">
+          <span>기관명</span>
+          <input id="f-orgName" type="text" placeholder="예: 한국생산기술연구원" autocomplete="off">
+        </label>
+        <label class="field">
+          <span>관계부서 <small>표지·일람표 기본값</small></span>
+          <input id="f-dept" type="text" placeholder="예: 경영지원본부" autocomplete="off">
+        </label>      </div>
+
+      <label class="field">
+        <span>감사명 <small>사건 개요 첫 줄에 쓰입니다</small></span>
+        <input id="f-auditName" type="text" placeholder="예: 2026년 정기 종합감사" autocomplete="off">
+      </label>
+
+      <div class="grid2">
+        <label class="field">
+          <span>행위 발생일</span>
+          <input id="f-occurredAt" type="date">
+        </label>
+        <label class="field">
+          <span>인지일</span>
+          <input id="f-awareAt" type="date">
+        </label>
+      </div>
+      <label class="checkline">
+        <input id="f-fiveYear" type="checkbox">
+        <span>5년 시효 특례(금품·향응 수수, 공금 횡령·유용 등)</span>
+      </label>
+      <div id="statuteInline" class="statute-inline"></div>
+
+      <div class="grid2">
+        <label class="field">
+          <span>의결 구분</span>
+          <select id="f-resType">
+            <option value="원안 의결">원안 의결</option>
+            <option value="수정 의결">수정 의결</option>
+            <option value="보류">보류</option>
+            <option value="재심의">재심의</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>의결 내용</span>
+          <input id="f-resText" type="text" placeholder="예: 상정된 안건을 원안대로 의결함" autocomplete="off">
+        </label>
+      </div>
+
+      <div class="panel-foot">
+        <span class="hint" id="step1Hint"></span>
+        <button class="btn primary" data-goto="2" type="button">2단계로 →</button>
+      </div>
+    </section>
+
+    <!-- ================= 2단계 ================= -->
+    <section class="panel" id="step2" hidden aria-labelledby="step2-h">
+      <div class="panel-head">
+        <h2 id="step2-h">2단계 · 건별 처분요구와 근거 매칭</h2>
+        <div class="head-actions">
+          <button class="btn ghost sm" id="addItem" type="button">+ 건 추가</button>
+        </div>
+      </div>
+      <p class="lead">처분요구 1건마다 카드를 하나 씁니다. 제목·종류·금액·인원은 <strong>1. 총괄</strong> 표에 자동 합산되고, 담은 근거만 <strong>4. 판단 및 관계 법령</strong>에 인용됩니다.</p>
+
+      <div class="item-tabs" id="itemTabs" role="tablist" aria-label="처분요구 건"></div>
+
+      <div class="item-editor">
+        <div class="grid2">
+          <label class="field">
+            <span>건 제목 <small>일람표·붙임1</small></span>
+            <input id="i-title" type="text" placeholder="예: 테스트 출장여비 부당 정산 등" autocomplete="off">
+          </label>
+          <label class="field">
+            <span>관계부서 <small>여러 개는 줄바꿈</small></span>
+            <textarea id="i-dept" rows="2" placeholder="예: 경영지원본부&#10;기업협력본부"></textarea>
+          </label>
+        </div>
+
+        <div class="subhead">
+          <h3>처분요구 종류·금액·인원</h3>
+          <button class="btn ghost sm" id="addKind" type="button">+ 종류 추가</button>
+        </div>
+        <div class="kind-table-wrap">
+          <table class="kind-table">
+            <thead>
+              <tr><th>종류</th><th>건수</th><th>인원(명)</th><th>금액(원)</th><th>비고</th><th></th></tr>
+            </thead>
+            <tbody id="kindBody"></tbody>
+          </table>
+        </div>
+        <p class="hint">금액은 변상·환수에서, 인원은 징계·주의·경고·고발·모범사례에서 씁니다. 총괄표는 <code>건수(값)</code> 형식으로 합산합니다.</p>
+
+        <div class="subhead"><h3>5단 블록</h3><span class="meta" id="blockMeta"></span></div>
+        <div class="blocks">
+          <label class="field block-field">
+            <span>① 제목</span>
+            <input id="i-b1" type="text" placeholder="예: 테스트 출장여비 부당 정산 등" autocomplete="off">
+          </label>
+          <label class="field block-field">
+            <span>② 경위 <small>1. 사건 개요</small></span>
+            <textarea id="i-b2" rows="3" placeholder="예: 이번 감사는 2026년 정기 종합감사로, 2026. 9. 1.부터 10. 20.까지 실시하였다."></textarea>
+          </label>
+          <label class="field block-field">
+            <span>③ 사실관계 <small>3. 감사결과 확인된 문제점</small></span>
+            <textarea id="i-b4" rows="4" placeholder="예: 해당 직원은 실제 출장을 이행하지 않고 영수증을 제출하여 여비 1,250,000원을 수령하였다."></textarea>
+          </label>
+          <label class="field block-field">
+            <span>④ 판단·법령 <small>2. 관계 규정 및 판단기준 · 담은 근거가 뒤에 붙습니다</small></span>
+            <textarea id="i-b3" rows="4" placeholder="예: 위 행위는 「여비규정」 제13조의3을 위반한 것으로 판단된다."></textarea>
+          </label>
+          <label class="field block-field">
+            <span>⑤ 처분요구 문안 <small>조치할 사항</small></span>
+            <textarea id="i-b5" rows="4" placeholder="예: ① 부당 수령한 여비 1,250,000원을 환수하고 …"></textarea>
+          </label>
+        </div>
+
+        <div class="subhead">
+          <h3>대상자 <small>(3. 지적사항 요약 · [관련자])</small></h3>
+          <button class="btn ghost sm" id="addSubject" type="button">+ 대상자 추가</button>
+        </div>
+        <div id="subjectList" class="subject-list"></div>
+
+        <div class="subhead"><h3>근거 담기</h3><span class="meta" id="pickedMeta"></span></div>
+        <div class="evidence-box">
+          <div class="seg" role="tablist">
+            <button class="seg-btn is-active" data-src="cases" type="button">감사 사례 710</button>
+            <button class="seg-btn" data-src="regs" type="button">KITECH 규정 9종</button>
+          </div>
+          <div class="search-row">
+            <input id="evSearch" type="search" placeholder="쟁점·키워드 (예: 출장여비, 허위 증빙, 겸직)">
+            <button class="btn ghost sm" id="suggestBtn" type="button">입력에서 추천</button>
+          </div>
+          <div class="chips" id="caseChips"></div>
+          <div id="evResults" class="results"></div>
+          <div class="picked-head">
+            <span>담은 근거 <strong id="pickedCount">0</strong>건</span>
+            <button class="btn ghost sm" id="clearPicked" type="button">비우기</button>
+          </div>
+          <ul id="pickedList" class="picked-list"></ul>
+        </div>
+
+        <div class="panel-foot">
+          <button class="btn ghost" data-goto="1" type="button">← 1단계</button>
+          <span class="hint" id="step2Hint"></span>
+          <button class="btn primary" data-goto="3" type="button">3단계로 →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 3단계 ================= -->
+    <section class="panel" id="step3" hidden aria-labelledby="step3-h">
+      <div class="panel-head">
+        <h2 id="step3-h">3단계 · 세부 증빙표 <span class="tag">선택</span></h2>
+        <div class="head-actions">
+          <select id="evidItemSelect" class="mini-select" aria-label="증빙표를 넣을 건"></select>
+        </div>
+      </div>
+      <p class="lead">붙임1의 <strong>[표] 세부 증빙 내역</strong>이 됩니다. 비워 두면 표 없이 깔끔하게 나갑니다. 엑셀에서 복사한 표를 그대로 붙여넣어도 됩니다.</p>
+
+      <div class="evid-table-wrap">
+        <table class="evid-table">
+          <thead>
+            <tr><th>#</th><th>일자</th><th>증빙 항목</th><th>내용</th><th>금액(원)</th><th>비고</th><th></th></tr>
+          </thead>
+          <tbody id="evidBody"></tbody>
+        </table>
+      </div>
+      <div class="row-actions">
+        <button class="btn ghost sm" id="addEvidRow" type="button">+ 행 추가</button>
+        <span class="meta" id="evidMeta"></span>
+      </div>
+
+      <details class="csv-box">
+        <summary>표 붙여넣기(CSV·엑셀 복사)로 한 번에 넣기</summary>
+        <p class="hint">첫 줄이 머리글이면 자동으로 건너뜁니다. 열 순서: 일자 · 증빙 항목 · 내용 · 금액 · 비고</p>
+        <textarea id="evidCsv" rows="5" placeholder="2026-09-12, 출장명령서, 2박3일 국내출장, 250000, 승인번호 1234"></textarea>
+        <button class="btn primary sm" id="applyCsv" type="button">붙여넣은 표 적용</button>
+      </details>
+
+      <div class="panel-foot">
+        <button class="btn ghost" data-goto="2" type="button">← 2단계</button>
+        <span class="hint" id="step3Hint"></span>
+        <button class="btn primary" data-goto="4" type="button">4단계로 →</button>
+      </div>
+    </section>
+
+    <!-- ================= 4단계 ================= -->
+    <section class="panel" id="step4" hidden aria-labelledby="step4-h">
+      <div class="panel-head">
+        <h2 id="step4-h">4단계 · 미리보기와 .hwpx 생성</h2>
+        <div class="head-actions">
+          <button class="btn ghost sm" id="refreshPreview" type="button">미리보기 새로고침</button>
+        </div>
+      </div>
+      <p class="lead">파일1 서식(클린 마스터 템플릿)의 표·문단에 입력값을 바인딩해 <strong>같은 서식의 .hwpx</strong>를 브라우저에서 만듭니다. 파일은 서버로 전송되지 않습니다.</p>
+
+      <div class="sum-grid" id="sumBox"></div>
+
+      <div class="gen-box">
+        <label class="field">
+          <span>파일 이름</span>
+          <input id="dlName" type="text" autocomplete="off">
+        </label>
+        <div class="gen-actions">
+          <button class="btn primary lg" id="genBtn" type="button">.hwpx 파일 만들기</button>
+          <button class="btn ghost" id="copyAi" type="button">AI 입력용 텍스트 복사</button>
+        </div>
+        <div id="resultPanel" class="result-panel" hidden aria-live="polite"></div>
+      </div>
+
+      <h3 class="preview-h">웹 미리보기 <span class="meta">실제 보고서 흐름(표지 → 총괄 → 일람표 → 지적사항 → 의결 → 붙임1 → 붙임2)</span></h3>
+      <div id="previewRoot" class="preview-root"></div>
+
+      <div class="panel-foot">
+        <button class="btn ghost" data-goto="3" type="button">← 3단계</button>
+        <span class="hint">생성 후 PC 한컴오피스에서 한 번 열어 글꼴·표 폭을 확인해 주세요.</span>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- 사용설명서 -->
+<div class="modal" id="helpModal" hidden role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2 id="helpTitle">📖 사용설명서</h2>
+      <button class="icon-btn" id="helpClose" type="button" aria-label="닫기">✕</button>
+    </header>
+    <div class="modal-body">
+      <h3>무엇을 하는 앱인가요</h3>
+      <p>감사처분심의위원회에 올릴 <strong>결과보고서(파일1)</strong>를, 실제 서식 그대로 채워 내보냅니다. 표지 → 1. 총괄 → 2. 일람표 → 3. 지적사항 요약 → 4. 의결사항 → 5. 처분요구(안) 붙임1 → 붙임2 관련근거 순서입니다.</p>
+
+      <h3>4단계로 쓰면 됩니다</h3>
+      <ol>
+        <li><strong>문서·감사 기본정보</strong> — 회차·보고일·제목·감사명, 행위 발생일과 인지일을 넣으면 징계시효(3년/5년)를 계산해 배지로 보여 줍니다.</li>
+        <li><strong>건별 처분요구·근거</strong> — 처분요구 1건마다 카드를 씁니다. 종류·금액·인원은 총괄표에 자동 합산되고, 5단 블록(제목·경위·사실관계·판단/법령·처분요구)을 적습니다. 사례 DB·규정에서 <em>근거 담기</em>를 누른 것만 인용됩니다.</li>
+        <li><strong>세부 증빙표</strong> — 필요한 건에만 표를 채웁니다. 비우면 표 없이 나갑니다.</li>
+        <li><strong>미리보기·HWPX</strong> — 웹 미리보기로 확인하고 <code>.hwpx</code>를 내려받습니다.</li>
+      </ol>
+
+      <h3>지켜지는 선</h3>
+      <ul>
+        <li>인용은 <strong>담은 근거의 원문 문자열</strong>만 씁니다. 조문·사건번호를 만들어 넣지 않습니다.</li>
+        <li>징계 종류·정도(양정)는 앱이 정하지 않습니다. 감사인 판단 몫입니다.</li>
+        <li>모든 입력과 파일은 <strong>이 브라우저 안에서만</strong> 처리됩니다. 서버 전송·외부 요청이 없습니다.</li>
+        <li>시효 계산은 참고값입니다. 중단·정지, 구법·신법 부칙은 감사인이 확인합니다.</li>
+      </ul>
+
+      <h3>자주 묻는 것</h3>
+      <p><strong>한글에서 열면 서식이 그대로인가요?</strong> 네, 원본 파일1의 표·문단 서식 개체를 그대로 두고 텍스트만 치환합니다. 다만 PC 한컴오피스에서 글꼴·표 폭을 한 번 확인하시길 권합니다.</p>
+      <p><strong>건을 여러 개 쓰면?</strong> 붙임1이 <em>붙임 1-1, 1-2</em>로 나뉘고 일람표·총괄표·지적사항 요약이 자동 합산됩니다.</p>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+
+<script src="assets/jszip.min.js"></script>
+<script src="assets/master-b64.js"></script>
+<script src="assets/data-cases.js"></script>
+<script src="assets/data-regs.js"></script>
+<script src="assets/hwpx-writer.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
