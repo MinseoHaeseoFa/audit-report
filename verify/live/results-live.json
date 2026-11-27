@@ -1,0 +1,159 @@
+{
+  "url": "https://audit-report-chi.vercel.app/",
+  "checks": [
+    {
+      "name": "[live:pc] 타이틀",
+      "ok": true,
+      "detail": "감사 보고서 자동화 시스템"
+    },
+    {
+      "name": "[live:pc] 보고서 종류 탭",
+      "ok": true,
+      "detail": "['감사처분심의위원회 결과보고서', '복무감사 결과보고서']"
+    },
+    {
+      "name": "[live:pc] 1단계 넘침 없음",
+      "ok": true,
+      "detail": "[1280, 1280]"
+    },
+    {
+      "name": "[live:pc] 결함1 카운터 5/5",
+      "ok": true,
+      "detail": "5단 블록 5/5"
+    },
+    {
+      "name": "[live:pc] 결함1 전체 10/10",
+      "ok": true,
+      "detail": "처분요구 건 6건 / 2묶음 5단 블록 10 / 10 담은 근거 3건"
+    },
+    {
+      "name": "[live:pc] 결함3 '출장여비' ≥1",
+      "ok": true,
+      "detail": "4건"
+    },
+    {
+      "name": "[live:pc] 결함3 '여비' ≥1",
+      "ok": true,
+      "detail": "4건"
+    },
+    {
+      "name": "[live:pc] 결함3 '겸직' ≥1",
+      "ok": true,
+      "detail": "9건"
+    },
+    {
+      "name": "[live:pc] 결함4 빈 행",
+      "ok": true,
+      "detail": "['', '', '', '', '']"
+    },
+    {
+      "name": "[live:pc] 결함2 <br>·** 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[live:pc] 4단계 넘침 없음",
+      "ok": true,
+      "detail": "[1280, 1280]"
+    },
+    {
+      "name": "[live:pc] hwpx 생성",
+      "ok": true,
+      "detail": "21750 bytes"
+    },
+    {
+      "name": "[live:pc] 외부 요청 0건",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[live:pc] 콘솔 오류 0건",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[live:pc] 페이지 예외 0건",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[live:mobile] 타이틀",
+      "ok": true,
+      "detail": "감사 보고서 자동화 시스템"
+    },
+    {
+      "name": "[live:mobile] 보고서 종류 탭",
+      "ok": true,
+      "detail": "['감사처분심의위원회 결과보고서', '복무감사 결과보고서']"
+    },
+    {
+      "name": "[live:mobile] 1단계 넘침 없음",
+      "ok": true,
+      "detail": "[390, 390]"
+    },
+    {
+      "name": "[live:mobile] 결함1 카운터 5/5",
+      "ok": true,
+      "detail": "5단 블록 5/5"
+    },
+    {
+      "name": "[live:mobile] 결함1 전체 10/10",
+      "ok": true,
+      "detail": "처분요구 건 6건 / 2묶음 5단 블록 10 / 10 담은 근거 3건"
+    },
+    {
+      "name": "[live:mobile] 결함3 '출장여비' ≥1",
+      "ok": true,
+      "detail": "4건"
+    },
+    {
+      "name": "[live:mobile] 결함3 '여비' ≥1",
+      "ok": true,
+      "detail": "4건"
+    },
+    {
+      "name": "[live:mobile] 결함3 '겸직' ≥1",
+      "ok": true,
+      "detail": "9건"
+    },
+    {
+      "name": "[live:mobile] 결함4 빈 행",
+      "ok": true,
+      "detail": "['', '', '', '', '']"
+    },
+    {
+      "name": "[live:mobile] 결함2 <br>·** 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[live:mobile] 4단계 넘침 없음",
+      "ok": true,
+      "detail": "[390, 390]"
+    },
+    {
+      "name": "[live:mobile] hwpx 생성",
+      "ok": true,
+      "detail": "21750 bytes"
+    },
+    {
+      "name": "[live:mobile] 외부 요청 0건",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[live:mobile] 콘솔 오류 0건",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "[live:mobile] 페이지 예외 0건",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "summary": {
+    "total": 30,
+    "passed": 30
+  }
+}

@@ -161,14 +161,14 @@
       "detail": "rendered-본문서.pdf"
     },
     {
-      "name": "[본문서] PDF 1~2쪽 이미지",
+      "name": "[본문서] PDF 쪽 이미지",
       "ok": true,
-      "detail": "6쪽"
+      "detail": "6쪽 · 6쪽 저장"
     },
     {
       "name": "[본문서] HWPX 왕복(원본 기준선 diff≤1)",
       "ok": true,
-      "detail": "[       IR_DIFF] diff=  1 r2=  0     40ms  생성본.hwpx · 원본 파일1도 diff=1"
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     37ms  생성본.hwpx · 원본 파일1도 diff=1"
     },
     {
       "name": "[증빙없음] 파일 크기",
@@ -281,14 +281,14 @@
       "detail": "rendered-증빙없음.pdf"
     },
     {
-      "name": "[증빙없음] PDF 1~2쪽 이미지",
+      "name": "[증빙없음] PDF 쪽 이미지",
       "ok": true,
-      "detail": "6쪽"
+      "detail": "6쪽 · 2쪽 저장"
     },
     {
       "name": "[증빙없음] HWPX 왕복(원본 기준선 diff≤1)",
       "ok": true,
-      "detail": "[       IR_DIFF] diff=  1 r2=  0     33ms  생성본_증빙없음.hwpx · 원본 파일1도 diff=1"
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     36ms  생성본_증빙없음.hwpx · 원본 파일1도 diff=1"
     },
     {
       "name": "[증빙없음] 증빙표 미생성",
@@ -411,14 +411,14 @@
       "detail": "rendered-2건.pdf"
     },
     {
-      "name": "[2건] PDF 1~2쪽 이미지",
+      "name": "[2건] PDF 쪽 이미지",
       "ok": true,
-      "detail": "8쪽"
+      "detail": "8쪽 · 2쪽 저장"
     },
     {
       "name": "[2건] HWPX 왕복(원본 기준선 diff≤1)",
       "ok": true,
-      "detail": "[       IR_DIFF] diff=  1 r2=  0     34ms  생성본_2건.hwpx · 원본 파일1도 diff=1"
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     36ms  생성본_2건.hwpx · 원본 파일1도 diff=1"
     }
   ],
   "summary": {
