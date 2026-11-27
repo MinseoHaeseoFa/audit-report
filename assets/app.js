@@ -207,6 +207,12 @@
     });
   }
 
+  function evidRows(it) {
+    return (it.evidences || []).filter(function (e) {
+      return [e.date, e.title, e.body, e.amount, e.note].some(function (v) { return String(v || '').trim().length; });
+    });
+  }
+
   function subjectRows() {
     var rows = [];
     state.items.forEach(function (it) {
@@ -597,10 +603,10 @@
       citeLines(it).forEach(function (l) { p.push('<p>' + esc(l) + '</p>'); });
       p.push('<h4 class="sec">3. 감사결과 확인된 문제점</h4>');
       lines(it.b4).forEach(function (l) { p.push('<p>' + esc(l) + '</p>'); });
-      if (it.evidences.length) {
+      if (evidRows(it).length) {
         p.push('<p class="caption">[표] 세부 증빙 내역</p>');
         p.push('<div class="table-scroll"><table><thead><tr><th style="width:7%">NO.</th><th style="width:14%">일자</th><th style="width:19%">증빙 항목</th><th>내용</th><th style="width:15%">금액(원)</th><th style="width:15%">비고</th></tr></thead><tbody>');
-        it.evidences.forEach(function (e, k) {
+        evidRows(it).forEach(function (e, k) {
           p.push('<tr><td>' + (k + 1) + '</td><td>' + esc(e.date || '') + '</td><td class="l">' + esc(e.title || '') + '</td><td class="l">' + esc(e.body || '') + '</td><td>' + esc(e.amount || '') + '</td><td>' + esc(e.note || '') + '</td></tr>');
         });
         p.push('</tbody></table></div>');
@@ -749,7 +755,7 @@
     rows.CITE = allCite.map(function (c, k) { return { LINE: (k + 1) + '. ' + c }; });
     var docs = state.items.map(function (it, i) {
       var cites = citeAnnex(it);
-      var e = it.evidences || [];
+      var e = evidRows(it);
       return {
         values: {
           'D.LABEL': state.items.length > 1 ? ('1-' + (i + 1)) : '1',

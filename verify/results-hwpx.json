@@ -3,7 +3,7 @@
     {
       "name": "[본문서] 파일 크기",
       "ok": true,
-      "detail": "21,472 bytes"
+      "detail": "21,378 bytes"
     },
     {
       "name": "[본문서] mimetype 첫 엔트리",
@@ -28,7 +28,7 @@
     {
       "name": "[본문서] section0.xml 파싱",
       "ok": true,
-      "detail": "문단 175 · 표 8 · 행 19"
+      "detail": "문단 169 · 표 8 · 행 18"
     },
     {
       "name": "[본문서] 미치환 토큰 0",
@@ -138,7 +138,7 @@
     {
       "name": "[본문서] HWPX 왕복(원본 기준선 diff≤1)",
       "ok": true,
-      "detail": "[       IR_DIFF] diff=  1 r2=  0     50ms  생성본.hwpx · 원본 파일1도 diff=1"
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     68ms  생성본.hwpx · 원본 파일1도 diff=1"
     },
     {
       "name": "[증빙없음] 파일 크기",
@@ -228,7 +228,7 @@
     {
       "name": "[증빙없음] HWPX 왕복(원본 기준선 diff≤1)",
       "ok": true,
-      "detail": "[       IR_DIFF] diff=  1 r2=  0     42ms  생성본_증빙없음.hwpx · 원본 파일1도 diff=1"
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     36ms  생성본_증빙없음.hwpx · 원본 파일1도 diff=1"
     },
     {
       "name": "[증빙없음] 증빙표 미생성",
@@ -328,7 +328,7 @@
     {
       "name": "[2건] HWPX 왕복(원본 기준선 diff≤1)",
       "ok": true,
-      "detail": "[       IR_DIFF] diff=  1 r2=  0     45ms  생성본_2건.hwpx · 원본 파일1도 diff=1"
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     38ms  생성본_2건.hwpx · 원본 파일1도 diff=1"
     }
   ],
   "summary": {
