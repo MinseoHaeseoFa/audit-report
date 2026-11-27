@@ -288,7 +288,7 @@
     {
       "name": "[증빙없음] HWPX 왕복(원본 기준선 diff≤1)",
       "ok": true,
-      "detail": "[       IR_DIFF] diff=  1 r2=  0     36ms  생성본_증빙없음.hwpx · 원본 파일1도 diff=1"
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     35ms  생성본_증빙없음.hwpx · 원본 파일1도 diff=1"
     },
     {
       "name": "[증빙없음] 증빙표 미생성",
@@ -418,11 +418,36 @@
     {
       "name": "[2건] HWPX 왕복(원본 기준선 diff≤1)",
       "ok": true,
-      "detail": "[       IR_DIFF] diff=  1 r2=  0     36ms  생성본_2건.hwpx · 원본 파일1도 diff=1"
+      "detail": "[       IR_DIFF] diff=  1 r2=  0     38ms  생성본_2건.hwpx · 원본 파일1도 diff=1"
+    },
+    {
+      "name": "[3차] 증빙 금액 120,000 반영",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[3차] 숫자만 120000 잔재 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[3차] 2건 표 10개(미리보기 6 + 라벨·표지 상자 4)",
+      "ok": true,
+      "detail": "10"
+    },
+    {
+      "name": "[3차] 15000 → 15,000",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "[3차] rhwp verify(표 10)",
+      "ok": true,
+      "detail": "판정: pass (2 통과 / 0 불일치)"
     }
   ],
   "summary": {
-    "total": 84,
-    "passed": 84
+    "total": 89,
+    "passed": 89
   }
 }

@@ -34,6 +34,18 @@
     if (!v) return '0';
     return v.toLocaleString('ko-KR');
   }
+  /* 증빙 금액 정규화 — 숫자만(120000 또는 120,000) 들어오면 천 단위 쉼표로 통일한다.
+     '30만원', '3,150,000원'처럼 숫자 외 문자가 섞인 값은 감사인이 쓴 그대로 둔다. */
+  function fmtAmount(v) {
+    var s = String(v == null ? '' : v).trim();
+    if (!s) return '';
+    var t = s.replace(/\s+/g, '');
+    if (/^\d+$/.test(t) || /^\d{1,3}(,\d{3})+$/.test(t)) {
+      var n = Number(t.replace(/,/g, ''));
+      if (isFinite(n)) return n.toLocaleString('ko-KR');
+    }
+    return s;
+  }
   function fmtDate(iso) {
     if (!iso) return '';
     var p = String(iso).split('-');
@@ -56,6 +68,27 @@
     t.hidden = false;
     clearTimeout(toast._t);
     toast._t = setTimeout(function () { t.hidden = true; }, 2600);
+  }
+
+  /* ---------------- 인앱 확인 모달 ----------------
+     window.confirm 은 브라우저 설정·자동화 환경·일부 인앱 브라우저에서 조용히 차단되면
+     "눌러도 아무 일이 없는 버튼"이 된다. 확인이 필요한 순간은 모두 이 모달로 받는다. */
+  var confirmCb = null;
+  function askConfirm(opt) {
+    opt = opt || {};
+    $('confirmTitle').textContent = opt.title || '확인';
+    $('confirmText').innerHTML = opt.html || ('<p style="margin:0">' + esc(opt.text || '') + '</p>');
+    var ok = $('confirmOk');
+    ok.textContent = opt.okText || '확인';
+    ok.className = 'btn ' + (opt.danger ? 'danger solid' : 'primary');
+    $('confirmCancel').textContent = opt.cancelText || '취소';
+    confirmCb = typeof opt.onOk === 'function' ? opt.onOk : null;
+    $('confirmModal').hidden = false;
+    setTimeout(function () { try { ok.focus(); } catch (e) { /* noop */ } }, 30);
+  }
+  function closeConfirm() {
+    $('confirmModal').hidden = true;
+    confirmCb = null;
   }
 
   /* ---------------- state ---------------- */
@@ -617,14 +650,21 @@
     body.innerHTML = (it.evidences.length ? it.evidences.map(function (e, i) {
       return '<tr>' +
         '<td class="act">' + (i + 1) + '</td>' +
-        '<td><input type="text" data-ek="date" data-i="' + i + '" value="' + esc(e.date || '') + '" placeholder="2026-09-12"></td>' +
-        '<td><input type="text" data-ek="title" data-i="' + i + '" value="' + esc(e.title || '') + '" placeholder="출장명령서"></td>' +
-        '<td><input type="text" data-ek="body" data-i="' + i + '" value="' + esc(e.body || '') + '" placeholder="2박 3일 국내출장"></td>' +
-        '<td><input type="text" data-ek="amount" data-i="' + i + '" value="' + esc(e.amount || '') + '" placeholder="250,000" inputmode="numeric"></td>' +
-        '<td><input type="text" data-ek="note" data-i="' + i + '" value="' + esc(e.note || '') + '" placeholder="승인번호 1234"></td>' +
+        '<td><input type="text" data-ek="date" data-i="' + i + '" value="' + esc(e.date || '') + '" placeholder="YYYY-MM-DD"></td>' +
+        '<td><input type="text" data-ek="title" data-i="' + i + '" value="' + esc(e.title || '') + '" placeholder="항목 입력"></td>' +
+        '<td><input type="text" data-ek="body" data-i="' + i + '" value="' + esc(e.body || '') + '" placeholder="내용 입력"></td>' +
+        '<td><input type="text" data-ek="amount" data-i="' + i + '" value="' + esc(e.amount || '') + '" placeholder="숫자만 입력" inputmode="numeric"></td>' +
+        '<td><input type="text" data-ek="note" data-i="' + i + '" value="' + esc(e.note || '') + '" placeholder="비고"></td>' +
         '<td class="act"><button class="row-del" data-delevid="' + i + '" type="button" aria-label="행 삭제">✕</button></td>' +
         '</tr>';
     }).join('') : '<tr><td colspan="7" class="hint">행이 없습니다. 비워 두면 문서에 증빙표가 나가지 않습니다.</td></tr>');
+    updateEvidStatus(it);
+  }
+
+  /* 하단 입력 행 카운터 — input 이벤트마다 바로 부른다 */
+  function updateEvidStatus(it) {
+    it = it || curEvidItem();
+    if (!it) return;
     var filled = evidRows(it).length;
     var blank = it.evidences.length - filled;
     $('evidMeta').textContent = it.evidences.length + '행' + (blank ? ' · 입력 ' + filled + '행' : '') + ' · ' + (it.title || '건 ' + (state.evidIdx + 1));
@@ -712,7 +752,7 @@
         p.push('<p class="caption">[표] 세부 증빙 내역</p>');
         p.push('<div class="table-scroll"><table><thead><tr><th style="width:7%">NO.</th><th style="width:14%">일자</th><th style="width:19%">증빙 항목</th><th>내용</th><th style="width:15%">금액(원)</th><th style="width:15%">비고</th></tr></thead><tbody>');
         evidRows(it).forEach(function (e, k) {
-          p.push('<tr><td>' + (k + 1) + '</td><td>' + esc(e.date || '') + '</td><td class="l">' + esc(e.title || '') + '</td><td class="l">' + esc(e.body || '') + '</td><td>' + esc(e.amount || '') + '</td><td>' + esc(e.note || '') + '</td></tr>');
+          p.push('<tr><td>' + (k + 1) + '</td><td>' + esc(e.date || '') + '</td><td class="l">' + esc(e.title || '') + '</td><td class="l">' + esc(e.body || '') + '</td><td>' + esc(fmtAmount(e.amount)) + '</td><td>' + esc(e.note || '') + '</td></tr>');
         });
         p.push('</tbody></table></div>');
       }
@@ -742,6 +782,40 @@
     p.push('</div>');
 
     $('previewRoot').innerHTML = p.join('');
+    renderTableNote();
+  }
+
+  /* 미리보기 표 ↔ HWPX 표 1:1 대조. HWPX(클린 마스터 템플릿)는 표지 제목 상자·붙임 라벨 상자도
+     hp:tbl 로 갖고 있고, 웹 미리보기는 같은 자리를 div 서식으로 그려 표로 세지 않는다.
+     그래서 두 숫자가 다르며, 차이는 정확히 그 상자 수만큼이다. */
+  function tablePlan() {
+    var plan = [{ name: '표지 제목 상자 (1×1)', preview: false }];
+    plan.push({ name: '1. 총괄 표', preview: true });
+    plan.push({ name: '2. 일람표', preview: true });
+    plan.push({ name: '3. 지적사항 요약 표', preview: true });
+    (state.items || []).forEach(function (it, i) {
+      var lbl = state.items.length > 1 ? ('붙임 1-' + (i + 1)) : '붙임 1';
+      plan.push({ name: lbl + ' 라벨 상자 (1×3)', preview: false });
+      if (evidRows(it).length) plan.push({ name: lbl + ' 세부 증빙 표', preview: true });
+      if ((it.subjects || []).length) plan.push({ name: lbl + ' 관련자 표', preview: true });
+    });
+    plan.push({ name: '붙임 2 라벨 상자 (1×3)', preview: false });
+    return plan;
+  }
+
+  function renderTableNote() {
+    var box = $('previewTableNote');
+    if (!box) return;
+    var plan = tablePlan();
+    var pv = plan.filter(function (x) { return x.preview; }).length;
+    var boxes = plan.length - pv;
+    box.innerHTML = '<span class="tn-head">표 구성: 웹 미리보기 ' + pv + '개 + HWPX 전용 상자 ' + boxes + '개 = 생성 파일 표 ' + plan.length + '개</span>' +
+      '<span class="tn-diff">표지 제목 상자·붙임 라벨 상자는 .hwpx에서 <code>hp:tbl</code> 표이지만, 웹 미리보기에서는 같은 자리를 서식(div)으로 그려 표로 세지 않습니다. 표의 내용·행은 같습니다.</span>' +
+      '<details><summary>표 1:1 대조 보기</summary><table><thead><tr><th>#</th><th>.hwpx 표</th><th>웹 미리보기</th></tr></thead><tbody>' +
+      plan.map(function (x, i) {
+        return '<tr><td class="c">' + (i + 1) + '</td><td>' + esc(x.name) + '</td><td class="c">' + (x.preview ? '표' : '서식(div)') + '</td></tr>';
+      }).join('') +
+      '</tbody></table></details>';
   }
 
   function docHeading() {
@@ -819,6 +893,30 @@
     toast('가상 테스트 데이터를 채웠습니다(가상 인물·가상 금액).');
   }
 
+  /* ---------------- 처음부터 (인앱 확인 모달에서 확정) ---------------- */
+  function resetAll() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* noop */ }
+    state = blankState();
+    state._hydrated = null;
+    searchState.q = '';
+    searchState.cat = '';
+    searchState.src = 'cases';
+    if ($('evSearch')) $('evSearch').value = '';
+    if ($('evidCsv')) $('evidCsv').value = '';
+    if ($('dlName')) $('dlName').value = '';
+    var rp = $('resultPanel');
+    if (rp) { rp.hidden = true; rp.innerHTML = ''; }
+    lastBuild = null;
+    window.__lastBuild = null;
+    hydrateMeta();
+    hydrateItem();
+    renderItemLists();
+    renderSidebar();
+    renderEvidTable();
+    goStep(1, true);
+    toast('모두 지우고 처음부터 시작합니다.');
+  }
+
   /* ---------------- HWPX 생성 ---------------- */
   function buildModel() {
     var m = state.meta;
@@ -878,7 +976,7 @@
           EVID: e.map(function (x, k) {
             return {
               NO: String(k + 1), DATE: x.date || '', TITLE: x.title || '',
-              BODY: x.body || '', AMOUNT: x.amount || '', NOTE: x.note || ''
+              BODY: x.body || '', AMOUNT: fmtAmount(x.amount), NOTE: x.note || ''
             };
           }),
           REL: (it.subjects || []).map(function (s) {
@@ -907,6 +1005,12 @@
     try {
       var res = await window.HwpxBuilder.build(buildModel());
       var chk = await window.HwpxBuilder.selfCheck(res.blob);
+      /* 표 개수 대조 — 미리보기 표 + HWPX 전용 상자 = 생성 표. 다르면 화면에 바로 표시한다. */
+      var plan = tablePlan();
+      var planPreview = plan.filter(function (x) { return x.preview; }).length;
+      var planBoxes = plan.length - planPreview;
+      var domTables = $('previewRoot') ? $('previewRoot').querySelectorAll('table').length : planPreview;
+      var tableMatch = res.stats.tables === plan.length && domTables === planPreview;
       var name = ($('dlName').value || '감사처분심의위원회_결과보고서.hwpx').replace(/\.hwpx$/i, '') + '.hwpx';
       var url = URL.createObjectURL(res.blob);
       var box = $('resultPanel');
@@ -916,11 +1020,12 @@
         '<ul>' +
         '<li>파일: ' + esc(name) + ' · ' + fmt(res.stats.bytes) + ' bytes</li>' +
         '<li>구조: 문단 ' + res.stats.paragraphs + ' · 표 ' + res.stats.tables + ' · 행 ' + res.stats.rows + '</li>' +
+        '<li>표 대조: 미리보기 ' + domTables + '개 + HWPX 전용 상자 ' + planBoxes + '개 = ' + plan.length + '개 예상 · 실제 생성 ' + res.stats.tables + '개 ' + (tableMatch ? '✓' : '⚠ 차이 있음') + '</li>' +
         '<li>mimetype 첫 엔트리·무압축: ' + (chk.mimetype ? '통과' : '실패') + ' (첫 엔트리 ' + esc(chk.firstEntry) + ')</li>' +
         '<li>section0.xml 파싱: ' + (chk.xmlParsed ? '통과' : '실패') + ' · 남은 토큰 ' + chk.leftoverTokens + '개</li>' +
         '</ul>' +
         '<a class="dl-link" href="' + url + '" download="' + esc(name) + '">↓ ' + esc(name) + ' 내려받기</a>';
-      lastBuild = { res: res, chk: chk, name: name };
+      lastBuild = { res: res, chk: chk, name: name, tables: { plan: plan.length, preview: domTables, boxes: planBoxes, actual: res.stats.tables, match: tableMatch } };
       window.__lastBuild = lastBuild;
       toast('HWPX를 만들었습니다. 아래 링크로 내려받으세요.');
     } catch (e) {
@@ -971,7 +1076,7 @@
       });
       out.push('### 세부 증빙');
       (it.evidences || []).forEach(function (e, k) {
-        out.push('- ' + (k + 1) + '. ' + [e.date, e.title, e.body, e.amount, e.note].filter(Boolean).join(' | '));
+        out.push('- ' + (k + 1) + '. ' + [e.date, e.title, e.body, fmtAmount(e.amount), e.note].filter(Boolean).join(' | '));
       });
       out.push('');
     });
@@ -1012,20 +1117,32 @@
       if (e.target === $('helpModal')) $('helpModal').hidden = true;
     });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !$('helpModal').hidden) $('helpModal').hidden = true;
+      if (e.key !== 'Escape') return;
+      if (!$('confirmModal').hidden) { closeConfirm(); return; }
+      if (!$('helpModal').hidden) $('helpModal').hidden = true;
+    });
+
+    $('confirmOk').addEventListener('click', function () {
+      var cb = confirmCb;
+      $('confirmModal').hidden = true;
+      confirmCb = null;
+      if (cb) cb();
+    });
+    $('confirmCancel').addEventListener('click', closeConfirm);
+    $('confirmClose').addEventListener('click', closeConfirm);
+    $('confirmModal').addEventListener('click', function (e) {
+      if (e.target === $('confirmModal')) closeConfirm();
     });
 
     $('resetBtn').addEventListener('click', function () {
-      if (!confirm('입력한 내용을 모두 지우고 처음부터 시작할까요? (이 브라우저에만 저장된 값입니다)')) return;
-      localStorage.removeItem(STORAGE_KEY);
-      state = blankState();
-      state._hydrated = null;
-      hydrateMeta();
-      hydrateItem();
-      renderItemLists();
-      renderSidebar();
-      goStep(1, true);
-      toast('초기화했습니다.');
+      askConfirm({
+        title: '처음부터 시작할까요?',
+        html: '<p style="margin:0 0 8px">네 단계에서 입력한 내용과 이 브라우저에 자동 저장된 초안을 <strong>모두 지우고</strong> 1단계로 돌아갑니다.</p>' +
+          '<p style="margin:0;color:#6b7a94;font-size:12.5px">이미 내려받은 .hwpx 파일은 지워지지 않습니다. 되돌릴 수 없으니 필요한 내용은 내려받기나 「AI 입력용 텍스트 복사」로 먼저 보관해 주세요.</p>',
+        okText: '모두 지우고 시작',
+        danger: true,
+        onOk: resetAll
+      });
     });
 
     $('loadSample').addEventListener('click', loadSample);
@@ -1068,12 +1185,22 @@
         readForms();
         var idx = Number(del.dataset.del);
         if (state.items.length === 1) { toast('건은 최소 1개가 필요합니다.'); return; }
-        if (!confirm('이 건을 삭제할까요?')) return;
-        state.items.splice(idx, 1);
-        state.active = Math.max(0, Math.min(state.active, state.items.length - 1));
-        state.evidIdx = Math.min(state.evidIdx, state.items.length - 1);
-        state._hydrated = null;
-        hydrateItem(); renderItemLists(); renderSidebar(); save();
+        var target = state.items[idx];
+        askConfirm({
+          title: '이 건을 삭제할까요?',
+          html: '<p style="margin:0">' + (idx + 1) + '. ' + esc((target && target.title) || ('건 ' + (idx + 1))) +
+            ' — 이 건의 5단 블록·처분 종류·대상자·증빙·담은 근거가 함께 지워집니다.</p>',
+          okText: '삭제',
+          danger: true,
+          onOk: function () {
+            state.items.splice(idx, 1);
+            state.active = Math.max(0, Math.min(state.active, state.items.length - 1));
+            state.evidIdx = Math.min(state.evidIdx, state.items.length - 1);
+            state._hydrated = null;
+            hydrateItem(); renderItemLists(); renderSidebar(); save();
+            toast('건을 삭제했습니다.');
+          }
+        });
         return;
       }
       var tab = e.target.closest('[data-idx]');
@@ -1241,6 +1368,22 @@
       if (!k || isNaN(i)) return;
       var it = curEvidItem();
       if (it.evidences[i]) it.evidences[i][k] = t.value;
+      /* 입력할 때마다 하단 카운터를 즉시 갱신한다(2차까지는 행 추가·삭제 때만 갱신됐다) */
+      updateEvidStatus(it);
+      save();
+    });
+    /* 금액은 포커스를 벗어날 때 천 단위 쉼표로 정리해 보여 준다(입력 중에는 건드리지 않는다) */
+    $('evidBody').addEventListener('change', function (e) {
+      var t = e.target;
+      if (t.dataset.ek !== 'amount') return;
+      var i = Number(t.dataset.i);
+      if (isNaN(i)) return;
+      var it = curEvidItem();
+      if (!it.evidences[i]) return;
+      var v = fmtAmount(t.value);
+      t.value = v;
+      it.evidences[i].amount = v;
+      updateEvidStatus(it);
       save();
     });
     $('evidBody').addEventListener('click', function (e) {
@@ -1294,6 +1437,9 @@
     get state() { return state; },
     goStep: goStep,
     loadSample: loadSample,
+    resetAll: resetAll,
+    tablePlan: tablePlan,
+    fmtAmount: fmtAmount,
     buildModel: buildModel,
     aiText: aiText,
     renderPreview: renderPreview,

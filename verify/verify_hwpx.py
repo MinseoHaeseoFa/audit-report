@@ -185,6 +185,28 @@ def main():
         "테스트 출장비 정산 부적정 건", "테스트 연구장비 무단 반출", "붙임 1-2",
     ], expect_pages_min=6, expect_tables_min=7)
 
+    # 3차 마감 패치 산출물 — 증빙 금액 천 단위 쉼표 · 표 개수(미리보기 5+3 / 6+4)
+    p3 = os.path.join(DL, "3차_금액.hwpx")
+    if os.path.exists(p3):
+        b3 = text_of(zipfile.ZipFile(p3).read("Contents/section0.xml"))
+        check("[3차] 증빙 금액 120,000 반영", "120,000" in b3)
+        check("[3차] 숫자만 120000 잔재 0", "120000" not in b3)
+    else:
+        check("[3차] 3차_금액.hwpx 존재", False, p3)
+
+    p4 = os.path.join(DL, "3차_2건표.hwpx")
+    if os.path.exists(p4):
+        z4 = zipfile.ZipFile(p4)
+        root4 = etree.fromstring(z4.read("Contents/section0.xml"))
+        n4 = len(root4.findall(".//hp:tbl", NS))
+        check("[3차] 2건 표 10개(미리보기 6 + 라벨·표지 상자 4)", n4 == 10, n4)
+        b4 = text_of(z4.read("Contents/section0.xml"))
+        check("[3차] 15000 → 15,000", "15,000" in b4)
+        code, out = rhwp("verify", p4, "--expect-min-pages", "5", "--expect-min-tables", "10")
+        check("[3차] rhwp verify(표 10)", code == 0, out.strip().splitlines()[-1] if out.strip() else "")
+    else:
+        check("[3차] 3차_2건표.hwpx 존재", False, p4)
+
     ok = sum(1 for c in checks if c["ok"])
     print(f"\n== {ok}/{len(checks)} 통과 ==")
     with open(OUT, "w", encoding="utf-8") as f:

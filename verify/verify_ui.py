@@ -13,6 +13,7 @@ import socketserver
 import threading
 import time
 import urllib.parse
+import zipfile
 
 from playwright.sync_api import sync_playwright
 
@@ -430,6 +431,180 @@ def run():
         p5.screenshot(path=os.path.join(SHOTS, "mobile-390-08-preview2.png"))
         check("[모바일] 회귀 예외 0", len(e5) == 0, e5)
         ctx5.close()
+
+        # ---------------- 3차 마감 패치 회귀: 뮤즈 재검수 #377 남은 4건 ----------------
+        ctx6 = browser.new_context(viewport={"width": 1280, "height": 800}, accept_downloads=True)
+        p6 = ctx6.new_page()
+        e6, dialogs6 = [], []
+        p6.on("pageerror", lambda e: e6.append(str(e)))
+        p6.on("dialog", lambda d: (dialogs6.append(d.type), d.dismiss()))
+        p6.goto(base, wait_until="load")
+        p6.evaluate("localStorage.clear()")
+        p6.reload(wait_until="load")
+        p6.wait_for_timeout(300)
+
+        # 1) 처음부터 — 인앱 모달·취소·확인
+        p6.click("#loadSample")
+        p6.wait_for_timeout(300)
+        p6.click("#resetBtn")
+        p6.wait_for_timeout(250)
+        check("[3차1] 처음부터 모달 열림", p6.is_visible("#confirmModal"), p6.inner_text("#confirmTitle"))
+        check("[3차1] 모달 문구에 초기화 범위 명시", "모두 지우고" in p6.inner_text("#confirmText"), p6.inner_text("#confirmText")[:80])
+        p6.click("#confirmCancel")
+        p6.wait_for_timeout(200)
+        check("[3차1] 취소하면 그대로", (not p6.is_visible("#confirmModal")) and p6.input_value("#f-docTitle") == "테스트 출장비 정산 부적정 건",
+              p6.input_value("#f-docTitle"))
+        p6.click("#resetBtn")
+        p6.wait_for_timeout(200)
+        p6.click("#confirmOk")
+        p6.wait_for_timeout(350)
+        st6 = p6.evaluate("() => ({t: document.getElementById('f-docTitle').value, items: window.__app.state.items.length, evid: window.__app.state.items[0].evidences.length, step: window.__app.state.step})")
+        check("[3차1] 확인하면 실제로 초기화", st6["t"] == "" and st6["items"] == 1 and st6["evid"] == 0 and st6["step"] == 1, st6)
+        check("[3차1] 초기화 후 1단계 화면", p6.is_visible("#step1") and not p6.is_visible("#step2"))
+        check("[3차1] window.confirm 대화상자 0건", len(dialogs6) == 0, dialogs6)
+        p6.click("#resetBtn")
+        p6.wait_for_timeout(200)
+        p6.screenshot(path=os.path.join(SHOTS, "pc-1280-13-fix1b-reset-modal.png"))
+        p6.click("#confirmCancel")
+
+        # 2) 증빙 행 카운터·자리표시자
+        p6.click("#loadSample")
+        p6.wait_for_timeout(250)
+        p6.click('.step[data-step="3"]')
+        p6.wait_for_timeout(250)
+        base_hint = p6.inner_text("#step3Hint")
+        p6.click("#addEvidRow")
+        p6.wait_for_timeout(150)
+        check("[3차2] 빈 행 추가 후 카운터", "3행이" in p6.inner_text("#step3Hint") and "빈 행 1개" in p6.inner_text("#step3Hint"),
+              f"{base_hint} → {p6.inner_text('#step3Hint')}")
+        ph = p6.evaluate("() => Array.from(document.querySelectorAll('#evidBody tr:last-child input')).map(i=>i.placeholder)")
+        check("[3차2] 자리표시자 중립화", ph == ["YYYY-MM-DD", "항목 입력", "내용 입력", "숫자만 입력", "비고"], ph)
+        last = p6.query_selector_all("#evidBody tr")[-1]
+        last.query_selector("input[data-ek='date']").fill("2026-10-01")
+        p6.wait_for_timeout(120)
+        check("[3차2] 입력 즉시 카운터 갱신", p6.inner_text("#step3Hint").startswith("4행이"), p6.inner_text("#step3Hint"))
+        last.query_selector("input[data-ek='amount']").fill("120000")
+        p6.wait_for_timeout(120)
+        check("[3차2] 금액 입력 후에도 4행", p6.inner_text("#evidMeta").startswith("4행"), p6.inner_text("#evidMeta"))
+        check("[3차2] raw 값은 입력대로 보존", last.query_selector("input[data-ek='amount']").input_value() == "120000",
+              last.query_selector("input[data-ek='amount']").input_value())
+        p6.evaluate("() => document.querySelector('#evidBody').scrollIntoView({block:'center'})")
+        p6.wait_for_timeout(120)
+        p6.screenshot(path=os.path.join(SHOTS, "pc-1280-14-fix2b-evid-counter.png"))
+
+        # 3) 금액 천 단위 쉼표 — 미리보기·HWPX
+        p6.click('.step[data-step="4"]')
+        p6.wait_for_timeout(500)
+        prev6 = p6.inner_text("#previewRoot")
+        check("[3차3] 미리보기 120,000", "120,000" in prev6, [l for l in prev6.splitlines() if "120" in l][:2])
+        check("[3차3] 미리보기 raw 120000 없음", "120000" not in prev6)
+        check("[3차3] 미리보기 표 5개", p6.evaluate("() => document.querySelectorAll('#previewRoot table').length") == 5,
+              p6.evaluate("() => document.querySelectorAll('#previewRoot table').length"))
+        note1 = p6.inner_text("#previewTableNote").splitlines()[0]
+        check("[3차4] 표 구성 안내(1건) 5+3=8", "5개" in note1 and "3개" in note1 and "8개" in note1, note1)
+        p6.click("#genBtn")
+        p6.wait_for_selector("#resultPanel a.dl-link", timeout=20000)
+        res6 = p6.inner_text("#resultPanel")
+        check("[3차4] 생성 결과 표 대조 ✓", "실제 생성 8개 ✓" in res6, [l for l in res6.splitlines() if "표 대조" in l])
+        with p6.expect_download() as d6:
+            p6.click("#resultPanel a.dl-link")
+        f6 = os.path.join(DL, "3차_금액.hwpx")
+        d6.value.save_as(f6)
+        with zipfile.ZipFile(f6) as z6:
+            xml6 = z6.read("Contents/section0.xml").decode("utf-8")
+        check("[3차3] HWPX 금액 셀 120,000", "120,000" in xml6 and "120000" not in xml6)
+        p6.screenshot(path=os.path.join(SHOTS, "pc-1280-15-fix3b-amount.png"))
+
+        # 4) 표 개수 — 2건(둘째 건 증빙만)이면 미리보기 6 / 생성 10 (뮤즈가 본 숫자 재현)
+        p6.click('.step[data-step="2"]')
+        p6.wait_for_timeout(250)
+        p6.click("#addItem")
+        p6.wait_for_timeout(200)
+        p6.fill("#i-title", "둘째 건")
+        p6.fill("#i-b2", "경위")
+        p6.fill("#i-b4", "사실")
+        p6.fill("#i-b5", "요구")
+        p6.click('.step[data-step="3"]')
+        p6.wait_for_timeout(250)
+        p6.select_option("#evidItemSelect", "1")
+        p6.wait_for_timeout(150)
+        p6.click("#addEvidRow")
+        p6.wait_for_timeout(150)
+        p6.fill("#evidBody input[data-ek='date']", "2026-09-09")
+        p6.fill("#evidBody input[data-ek='amount']", "15000")
+        p6.wait_for_timeout(150)
+        p6.click('.step[data-step="4"]')
+        p6.wait_for_timeout(500)
+        note2 = p6.inner_text("#previewTableNote").splitlines()[0]
+        check("[3차4] 표 구성 안내(2건) 6+4=10", "6개" in note2 and "4개" in note2 and "10개" in note2, note2)
+        check("[3차4] 미리보기 표 6개", p6.evaluate("() => document.querySelectorAll('#previewRoot table').length") == 6)
+        p6.click("#genBtn")
+        p6.wait_for_selector("#resultPanel a.dl-link", timeout=20000)
+        res6b = p6.inner_text("#resultPanel")
+        check("[3차4] 2건 표 대조 실제 10개 ✓", "실제 생성 10개 ✓" in res6b, [l for l in res6b.splitlines() if "표 대조" in l])
+        with p6.expect_download() as d6b:
+            p6.click("#resultPanel a.dl-link")
+        f6b = os.path.join(DL, "3차_2건표.hwpx")
+        d6b.value.save_as(f6b)
+        with zipfile.ZipFile(f6b) as z6b:
+            xml6b = z6b.read("Contents/section0.xml").decode("utf-8")
+        check("[3차4] HWPX 실측 표 10개", xml6b.count("<hp:tbl") == 10, xml6b.count("<hp:tbl"))
+        check("[3차4] HWPX 15000 → 15,000", "15,000" in xml6b)
+        p6.evaluate("() => document.querySelector('#previewTableNote').scrollIntoView({block:'center'})")
+        p6.wait_for_timeout(150)
+        p6.screenshot(path=os.path.join(SHOTS, "pc-1280-16-fix4b-table-note.png"))
+
+        # 5) 건 삭제도 인앱 모달로
+        p6.click('.step[data-step="2"]')
+        p6.wait_for_timeout(250)
+        p6.click(".item-tab [data-del]")
+        p6.wait_for_timeout(250)
+        check("[3차1] 건 삭제 모달", p6.is_visible("#confirmModal") and "삭제" in p6.inner_text("#confirmTitle"), p6.inner_text("#confirmTitle"))
+        p6.click("#confirmOk")
+        p6.wait_for_timeout(300)
+        check("[3차1] 건 삭제 적용", p6.eval_on_selector_all(".item-tab", "els=>els.length") == 1,
+              p6.eval_on_selector_all(".item-tab", "els=>els.length"))
+        check("[3차] 콘솔·예외 0", len(e6) == 0 and len(dialogs6) == 0, [e6, dialogs6])
+        check("[3차] PC 가로 넘침 없음", overflow(p6)[0] <= overflow(p6)[1], overflow(p6))
+        ctx6.close()
+
+        # ---------------- 모바일 3차 회귀 390x844 ----------------
+        ctx7 = browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
+        p7 = ctx7.new_page()
+        e7, dlg7 = [], []
+        p7.on("pageerror", lambda e: e7.append(str(e)))
+        p7.on("dialog", lambda d: (dlg7.append(d.type), d.dismiss()))
+        p7.goto(base, wait_until="load")
+        p7.evaluate("localStorage.clear()")
+        p7.reload(wait_until="load")
+        p7.wait_for_timeout(300)
+        p7.click("#loadSample")
+        p7.wait_for_timeout(300)
+        p7.click("#resetBtn")
+        p7.wait_for_timeout(300)
+        check("[모바일3차] 모달 표시·넘침 없음", p7.is_visible("#confirmModal") and overflow(p7)[0] <= overflow(p7)[1], overflow(p7))
+        p7.screenshot(path=os.path.join(SHOTS, "mobile-390-09-fix1b-reset-modal.png"))
+        p7.click("#confirmOk")
+        p7.wait_for_timeout(350)
+        check("[모바일3차] 초기화 적용", p7.input_value("#f-docTitle") == "" and p7.is_visible("#step1"), p7.input_value("#f-docTitle"))
+        p7.click("#loadSample")
+        p7.wait_for_timeout(250)
+        p7.click('.step[data-step="3"]')
+        p7.wait_for_timeout(250)
+        p7.click("#addEvidRow")
+        p7.wait_for_timeout(150)
+        p7.fill("#evidBody tr:last-child input[data-ek='body']", "내용")
+        p7.wait_for_timeout(150)
+        check("[모바일3차] 카운터 즉시 갱신", p7.inner_text("#step3Hint").startswith("4행이"), p7.inner_text("#step3Hint"))
+        check("[모바일3차] 3단계 넘침 없음", overflow(p7)[0] <= overflow(p7)[1], overflow(p7))
+        p7.click('.step[data-step="4"]')
+        p7.wait_for_timeout(600)
+        n7 = p7.inner_text("#previewTableNote").splitlines()[0]
+        check("[모바일3차] 표 구성 안내", "웹 미리보기 5개" in n7, n7)
+        check("[모바일3차] 4단계 넘침 없음", overflow(p7)[0] <= overflow(p7)[1], overflow(p7))
+        p7.screenshot(path=os.path.join(SHOTS, "mobile-390-10-fix4b-table-note.png"))
+        check("[모바일3차] 예외·confirm 0", len(e7) == 0 and len(dlg7) == 0, [e7, dlg7])
+        ctx7.close()
         browser.close()
 
     httpd.shutdown()
